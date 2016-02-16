@@ -47,10 +47,12 @@ def find_messages_after_timestamp(start_timestamp):
       message_id_just_before = response[-1]['id']
   return messages
 
-def find_days_of_messages():
-  current_time = calendar.timegm(time.gmtime())
-  twenty_four_hours = 24*60*60
-  return find_messages_after_timestamp(current_time - twenty_four_hours)
+def prev_midnight():
+  return datetime.datetime.combine(datetime.date.today(), datetime.time.min)
+
+def find_messages_since_midnight():
+  last_midnight = (prev_midnight() - datetime.datetime(1970,1,1)).total_seconds()
+  return find_messages_after_timestamp(last_midnight)
 
 def send_message_to_group(bot_id, msg):
   data = {
@@ -60,6 +62,6 @@ def send_message_to_group(bot_id, msg):
   requests.post('https://api.groupme.com/v3/bots/post', data=data)
 
 def send_daily_message_count():
-  count = len(find_days_of_messages())
-  msg = "In the past 24 hours, there were %d messages" % count
+  count = len(find_messages_since_midnight())
+  msg = "Since %s, there were %d messages" % (prev_midnight().strftime("%B %d %I:%M%p CST"), count)
   send_message_to_group(bot_id, msg)
