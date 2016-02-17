@@ -14,7 +14,7 @@ add environment variables to your .bashrc
 
 `export group_id=123`
 `export bot_id=456`
-`export token=abc123`
+`export access_token=abc123`
 
 then run the app
 

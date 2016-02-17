@@ -1,12 +1,13 @@
 import os
 import calendar
 import datetime
+from dateutil import tz
 import requests
 import time
 requests.packages.urllib3.disable_warnings()
 
 bot_id  = os.environ["bot_id"]
-access_token = os.environ["groupme_token"]
+access_token = os.environ["access_token"]
 group_id = os.environ["group_id"]
 
 def get_messages(limit=100, before_id='', after_id=''):
@@ -48,11 +49,13 @@ def find_messages_after_timestamp(start_timestamp):
   return messages
 
 def prev_midnight():
-  return datetime.datetime.combine(datetime.date.today(), datetime.time.min)
+  ONE_DAY = 86400
+  SIX_HOURS = 21600
+  now = calendar.timegm(time.gmtime())
+  return now - (calendar.timegm(time.gmtime()) % ONE_DAY) + SIX_HOURS
 
 def find_messages_since_midnight():
-  last_midnight = (prev_midnight() - datetime.datetime(1970,1,1)).total_seconds()
-  return find_messages_after_timestamp(last_midnight)
+  return find_messages_after_timestamp(prev_midnight())
 
 def send_message_to_group(bot_id, msg):
   data = {
@@ -61,7 +64,21 @@ def send_message_to_group(bot_id, msg):
          }
   requests.post('https://api.groupme.com/v3/bots/post', data=data)
 
+def epoch_to_local(timestamp, timezone='America/Chicago'):
+  utc = datetime.datetime.fromtimestamp(int(timestamp))
+  from_zone = tz.tzutc()
+  to_zone = tz.gettz(timezone)
+  utc = utc.replace(tzinfo=from_zone)
+  local = utc.astimezone(to_zone)
+  return local
+
 def send_daily_message_count():
   count = len(find_messages_since_midnight())
-  msg = "Since %s, there were %d messages" % (prev_midnight().strftime("%B %d %I:%M%p CST"), count)
+  date_str = epoch_to_local(prev_midnight()).strftime("%b %d %I:%M%p %Z")
+  msg = "Since %s, there were %d messages" % (date_str, count)
   send_message_to_group(bot_id, msg)
+
+if __name__ == "__main__":
+  print "manual test run"
+  bot_id  = os.environ["testbot_id"]
+  send_daily_message_count()
