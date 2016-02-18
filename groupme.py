@@ -78,6 +78,9 @@ def send_daily_message_count():
   msg = "Since %s, there were %d messages" % (date_str, count)
   send_message_to_group(bot_id, msg)
 
+def tell_frank_to_go_home():
+  send_message_to_group(bot_id, "go home frank")
+
 if __name__ == "__main__":
   print "manual test run"
   bot_id  = os.environ["testbot_id"]
