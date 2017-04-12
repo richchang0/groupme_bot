@@ -81,6 +81,9 @@ def send_daily_message_count():
 def tell_frank_to_go_home():
   send_message_to_group(bot_id, "go home frank")
 
+def startup_message():
+  send_message_to_group(bot_id, "i'm back bois")
+
 if __name__ == "__main__":
   print "manual test run"
   bot_id  = os.environ["testbot_id"]
